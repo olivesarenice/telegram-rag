@@ -1,0 +1,27 @@
+[
+    {
+        "object_id": "T00001",
+        "timestamp": "2024-07-21 12:34:56",
+        "message": "Repo structure\n- PUBLIC\n- PRIVATE\n- DRAFT\n\nTitle convention\n\nPR_2024-05-03_SEEDLY_PSF Condo Analysis\n\n<folder_name> : PU, PR, DR\n<deliver_date> : 2024-05-03\n<context> : context where the slide will be presented e.g. DBS, PLB, NOTG, WEBINAR, etc.\n<title> : short description, no special characters \"XXXX Analysis\"\n\nList of charts and their links + tags will be retrieved via API\n\nAlso call oembed_iframe to generate the content for each URL\n\nWorkflow"
+    },
+    {
+        "object_id": "T00002",
+        "timestamp": "2024-07-21 12:35:10",
+        "message": "Kafka: distributed queue system. Works on a producer-consumer model (consume doesn't delete the data, just reads it and moves to the next offset).\n\nUse cases:\n- Allow systems to store their queued actions/messages if downstream services break. They can pick up from there after.\n- Replaying a queue of messages for reprocessing (e.g., reprocess an entire day's messages when mismatched accounting is found).\n- Allow other services to consume messages without affecting main services (independent consumer groups at their own offset rate)."
+    },
+    {
+        "object_id": "T00003",
+        "timestamp": "2024-07-21 12:35:10",
+        "message": "Fun use case for propguru-db:\n\nPeople want to be able to search for homes descriptively. For example, 'find me a home that is <spacious, bright, near to nature, and quiet>' and it will perform a search based on the description and images (turned into embeddings)."
+    },
+    {
+        "object_id": "T00004",
+        "timestamp": "2024-07-21 12:35:10",
+        "message": "Problems I wish people solved for me / What is obviously missing:\n\n- Get sufficient whole protein without having to cook.\n- Having ways to make money while idle at work (e.g., traveling or office - OE contracting)."
+    },
+    {
+        "object_id": "T00001",
+        "timestamp": "2024-07-21 12:35:10",
+        "message": "1. Err on the side of 'lesser users, stronger need'. >> This translates to desperate and loyal customers. We want an 'I need this now', instead of customers that go 'I could see myself using it'.\n\n2. Turn off the schelp and unsexy filters >> Choose to address the tedious problems in backwards industries.\n\n3. Notice the obvious >> What job do I need done desperately, and yet nothing exists to do it satisfactorily yet?\n\n4. Look at jobs to be done rather than products >> Don't make X 'as a replacement for Y'. Make X which 'turned out to be a replacement for Y'. X need not be a similar product as Y, like how the car is not similar to the horse, but an alternative to get people from A to B."
+    }
+]

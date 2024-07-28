@@ -3,11 +3,11 @@ resource "astra_database" "serverless_db" {
   # Required
   name           = "telegram_rag"
   keyspace       = "telegram_rag" # optional, 48 characters max
-  cloud_provider = "aws"
-  regions        = ["us-east-2"]
-
+  cloud_provider = "gcp"
+  regions        = ["us-east1"]
+  db_type        = "vector"
   # Optional
-  deletion_protection = true
+  deletion_protection = false
   timeouts {
     create = "30m"
     update = "30m"

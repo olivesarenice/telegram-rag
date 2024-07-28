@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "telegram-rag"
+version = "0.1.0"
+description = "Managed by Poetry"
+authors = ["OQ <olivesarenice@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10, <3.11"
+flask = "^3.0.3"
+flask-restful = "^0.3.10"
+cassandra-driver = "^3.29.1"
+loguru = "^0.7.2"
+python-dotenv = "^1.0.1"
+astrapy = "^1.4.0"
+openai = "^1.36.0"
+langchain-openai = "^0.1.17"
+pandas = "^2.2.2"
+aiogram = "^3.10.0"
+requests = "^2.32.3"
+
+[tool.poetry.group.dev.dependencies]
+bandit = "1.7.4"
+black = "22.6.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+

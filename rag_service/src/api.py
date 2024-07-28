@@ -213,6 +213,17 @@ def connect(endpoint, token, keyspace):
     return database
 
 
+def liveness_check(collection):
+
+    try:
+        n_docs = collection.estimated_document_count()
+        lg(f"Liveness check - found {n_docs} documents.")
+        return True
+    except:
+        lg(f"Failed liveness check.")
+        return False
+
+
 if __name__ == "__main__":
 
     import json

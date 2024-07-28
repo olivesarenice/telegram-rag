@@ -1,4 +1,6 @@
 import os
+import threading
+import time
 
 import api
 from flask import Flask, json, jsonify, render_template, request
@@ -72,6 +74,12 @@ def get_message():
     return jsonify(response)
 
 
+def keep_alive(collection, interval=300):
+    while True:
+        api.liveness_check(collection)
+        time.sleep(interval)
+
+
 if __name__ == "__main__":
 
     database = get_db_connection(
@@ -85,4 +93,9 @@ if __name__ == "__main__":
     conn_d["collection"] = collection
     conn_d["database"] = database
 
-    app.run()
+    # Start keep-alive in a separate thread
+    query_thread = threading.Thread(target=keep_alive, args=(collection,))
+    query_thread.daemon = True
+    query_thread.start()
+
+    app.run(host="0.0.0.0", port=5000)

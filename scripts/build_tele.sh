@@ -31,7 +31,7 @@ echo "SSH-ing into $INSTANCE_IP"
 # SSH into the EC2 instance and execute commands
 ssh -i ~/.ssh/ec2-ssh-keypair.pem ubuntu@$INSTANCE_IP << EOF
     set -e
-    # aws configure export-credentials
+    aws configure export-credentials
     # Step 1: Authenticate Docker to the Amazon ECR registry
     aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
     echo "Pulling from $IMAGE_URL"
@@ -40,12 +40,11 @@ ssh -i ~/.ssh/ec2-ssh-keypair.pem ubuntu@$INSTANCE_IP << EOF
 
     # Step 3: Kill any existing containers of the same base image
 
-    CONTAINER_ID=\$(docker ps --format "{{.ID}} {{.Image}}" | grep "$ECR_URL/$APP_NAME" | awk '{print \$1}')
-    echo "Stopping exising containers: <\$CONTAINER_ID>"
-    if [ -n "\$CONTAINER_ID" ]; then
-        docker stop \$CONTAINER_ID
-        docker rm \$CONTAINER_ID
-    fi
+    # Step 3: Kill any existing containers of the same base image
+
+
+    docker stop $APP_NAME || true
+    docker rm $APP_NAME || true
 
     # Optional: create a network bridge for cross-service comms
     if ! docker network inspect $PROJECT_NAME > /dev/null 2>&1; then

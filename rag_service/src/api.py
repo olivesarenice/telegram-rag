@@ -1,7 +1,10 @@
 import datetime
 import os
+import re
 
+import boto3
 import llm_helper
+import markdown
 from astrapy import DataAPIClient
 from astrapy.constants import VectorMetric
 from astrapy.exceptions import CollectionAlreadyExistsException, InsertManyException
@@ -37,7 +40,7 @@ def infer_domain(text):
 
 def summarise_content(text):
     system_prompt = f"""
-    You are to return a summary of the given text in less than 120 characters. Do not include references and links.
+    Return a summary of the given text in less than 120 characters. Start with <This document describes ...>
     """
 
     user_prompt = f"""
@@ -50,7 +53,7 @@ def summarise_content(text):
 
 def infer_title(text):
     system_prompt = f"""
-    You are to return a title that best describes the text. Use less than 20 characters.
+    Return a title that best describes the text. Use less than 20 characters. If you are unable to infer a title, return 'Untitled'
     """
 
     user_prompt = f"""
@@ -63,7 +66,7 @@ def infer_title(text):
 
 def clean_content(text):
     system_prompt = f"""
-    You are to clean up the given text, including proper formatting and rephrasing, so that it is easy to understand. Do not rephrase a sentence if the language is already concise and clear. Use concise language that a B2 English proficiency speaker would use. Add hyperlinks where appropriate. Return the text in Markdown format.
+    You are to clean up the given text, including proper formatting so that it is easy to understand. Do not rephrase a sentence if the language is already concise and clear. Use concise language that a B2 English proficiency speaker would use. Return the text in Markdown format. Add hyperlinks where appropriate.
     """
 
     user_prompt = f"""
@@ -163,6 +166,75 @@ def repack_docs_to_str_list(docs, keep_keys, sep="---"):
     return repack_ls
 
 
+# Helper
+def upload_to_s3(file_path, object_name, bucket_name=os.environ["PUBLIC_S3_NAME"]):
+
+    if os.environ["RUN_ENV"] == "LOCAL":
+        aws_profile = "developer_crc_PermissionSet"
+        session = boto3.Session(profile_name=aws_profile)
+    else:
+        session = boto3.Session()
+
+    try:
+
+        s3_client = session.client("s3")
+        s3_client.upload_file(file_path, bucket_name, object_name)
+        print(f"Successfully uploaded {file_path} to s3://{bucket_name}/{object_name}")
+    except Exception as e:
+        print(f"Error uploading {file_path} to S3: {e}")
+
+
+def create_html_file(doc):
+    # Convert cleaned_content from markdown to HTML
+    html_content = markdown.markdown(doc["cleaned_content"])
+
+    # Construct the HTML content
+    html = f"""
+    <html>
+    <head>
+        <title>{doc['cleaned_title']}</title>
+    </head>
+    <body>
+        <div>
+            {doc['update_ts']}
+        </div>
+        <div>
+            {html_content}
+        </div>
+        <hr />
+        <div>
+            <pre>{doc['raw_content']}</pre>
+        </div>
+    </body>
+    </html>
+    """
+    current_ts = datetime.datetime.now().strftime("%H%M%S")
+    # Create file name
+    sanitise_title = re.sub(r"[^a-zA-Z0-9 ]", "", doc["cleaned_title"]).lower()
+    object_name = f"{sanitise_title.replace(' ', '_')}_{current_ts}.html"
+
+    # Save HTML content to file
+    with open("tmp.html", "w", encoding="utf-8") as file:
+        file.write(html)
+
+    return object_name
+
+
+def upload_to_s3_workflow(docs):
+    links = []
+    for doc in docs:
+        # Create HTML file
+        object_name = create_html_file(doc)
+
+        # Upload the file to S3
+        upload_to_s3("tmp.html", object_name)
+        link = f"https://{os.environ['PUBLIC_S3_NAME']}.s3.amazonaws.com/{object_name}"
+        links.append(link)
+        # Clean up the local file
+        os.remove("tmp.html")
+    return links
+
+
 def augmented_generation(prompt, docs):
 
     repacked_docs = repack_docs_to_str_list(
@@ -178,7 +250,7 @@ def augmented_generation(prompt, docs):
     You are a laidback, helpful daemon living in database. But never mention your role.
     Use the CONTEXT to answer the QUESTION. Try to use all context blocks to answer, only if the context is relevant to the QUESTION. Context blocks are separated by --- and are ordered by importance.
     
-    If you don't know the answer, just answer that you don't know, don't make anything up.
+    If you don't have enough info to answer, just reply "I don't have enough context to answer - here are the closest documents I found", don't make anything up.
     Communicate only within CONTEXT.
     Answer in the same language as the QUESTION. Use language that a B2 English proficiency speaker would use. Format your response in Telegram Markdown V2 format.
     """
@@ -195,13 +267,18 @@ def augmented_generation(prompt, docs):
 
     lg(docs_str)
 
+    # Generate the llm reply
     response = llm_helper.call_openai_response(system_prompt, user_prompt)
     response_text = response.choices[0].message.content
     lg(response_text)
 
     response_text
 
-    response_text_reference = response_text + "\n\nREFERENCES:\n" + docs_str
+    # Generate the links to HTML of the docs.
+    links = upload_to_s3_workflow(docs)
+    links_str = "\n".join([f"{i+1}. {link}" for i, link in enumerate(links)])
+    # Append the links as references
+    response_text_reference = response_text + "\n\nREFERENCES:\n" + links_str
     lg(response_text_reference)
     return response_text_reference  # string
 

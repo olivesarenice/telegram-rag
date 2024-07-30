@@ -47,6 +47,7 @@ def send_message():
     lg(f"LLM parsed text")
     response = collection.insert_many(docs)
     lg(f"Insert to DB complete: {response}")
+
     return jsonify(response)
 
 
@@ -65,7 +66,7 @@ def get_message():
     text = data.get("text")
     docs = api.retrieve_hybrid_search(
         text=text,
-        top_n=1,
+        top_n=3,
         collection=conn_d["collection"],
     )
     lg(docs)
@@ -87,6 +88,17 @@ if __name__ == "__main__":
         token=os.environ["ASTRA_API_TOKEN"],
         keyspace="telegram_rag",
     )
+
+    try:
+        collection = database.create_collection(
+            "core_messages",
+            dimension=1536,
+            metric=api.VectorMetric.DOT_PRODUCT,  # Or just 'cosine'.
+            check_exists=True,  # Optional
+        )
+    except api.CollectionAlreadyExistsException:
+        lg("Collection already exists.")
+
     collection = database.get_collection("core_messages")
 
     conn_d = {}

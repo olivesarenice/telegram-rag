@@ -17,7 +17,13 @@ lg = logger.info
 
 load_dotenv("../.env")
 
-url = "http://rag_service:5000"
+if os.environ["RUN_ENV"] == "LOCAL":
+    url = "http://127.0.0.1:5000"
+    lg(f"Local server. Connecting to {url}")
+else:
+    url = "http://rag_service:5000"
+    lg(f"Remote server. Connecting to {url}")
+
 # token – Telegram Bot token Obtained from telegram @BotFather
 token = os.environ["TELEGRAM_BOT_TOKEN"]
 
@@ -145,4 +151,6 @@ async def main():
 
 
 if __name__ == "__main__":
+    lg("Started Telegram polling, waiting for messages ...")
+
     asyncio.run(main())

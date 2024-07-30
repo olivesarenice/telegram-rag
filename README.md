@@ -123,6 +123,8 @@ DONE 28 JUL:
 - Add function to write all docs written to DB to also upload as file to s3. This will be a public s3, but we will delete all files in the bucket after X days
 Presigned URLs were too long, and i didnt want to code up another server for doing tinyurl redirects.
 
+Had some issues with the EC2 permissions - due to outdate instance profiles persisting (they share the same name) https://docs.aws.amazon.com/IAM/latest/UserGuide/troubleshoot_iam-ec2.html#troubleshoot_iam-ec2_errors-info-doc
+
 NEXT:
 - Explore more context stores and routing search requests to them
 - Upload dataset.

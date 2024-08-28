@@ -293,8 +293,13 @@ def connect(endpoint, token, keyspace):
 def liveness_check(collection):
 
     try:
-        n_docs = collection.estimated_document_count()
-        lg(f"Liveness check - found {n_docs} documents.")
+        # n_docs = collection.estimated_document_count()
+        results_ite = collection.find(
+            limit=1,
+        )
+        results = [r for r in results_ite]
+        # print(results)
+        lg(f"Liveness check - DONE.")
         return True
     except:
         lg(f"Failed liveness check.")
@@ -339,4 +344,6 @@ if __name__ == "__main__":
 
     text = "startup ideas"
 
-    lg(retrieve_hybrid_search(filter_d={}, text=text, top_n=3))
+    # lg(retrieve_hybrid_search(filter_d={}, text=text, top_n=3))
+
+    liveness_check(collection)
